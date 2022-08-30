@@ -1,10 +1,9 @@
 buildscript {
-  dependencies {
-    classpath dep.androidPlugin
-    classpath dep.kotlinPlugin
-    classpath dep.graphqlSupport
-
-  }
+    dependencies {
+        classpath dep.androidPlugin
+        classpath dep.kotlinPlugin
+        classpath dep.graphqlSupport
+    }
 }
 
 apply plugin: 'com.android.library'
@@ -12,40 +11,40 @@ apply plugin: 'kotlin-android'
 //apply plugin: 'signing'
 
 android {
-  compileSdkVersion androidConfig.compileSdkVersion
+    compileSdkVersion androidConfig.compileSdkVersion
 
-  compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
-  }
-
-  sourceSets {
-    main.java.srcDirs += '../libs/graphql_java_gen/support/src/main/java'
-  }
-
-  defaultConfig {
-    minSdkVersion androidConfig.minSdkVersion
-
-    buildConfigField "String", "BUY_SDK_VERSION", "\"$VERSION_NAME\""
-
-    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-  }
-
-  buildTypes {
-    release {
-      minifyEnabled = false
-      proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
-  }
 
-  libraryVariants.all { variant ->
-    variant.outputs.all { output ->
-      def outputFile = output.outputFile
-      if (outputFile != null && outputFile.name.endsWith('.aar')) {
-        outputFileName = "${variant.name}-${VERSION_NAME}.aar"
-      }
+    sourceSets {
+        main.java.srcDirs += '../libs/graphql_java_gen/support/src/main/java'
     }
-  }
+
+    defaultConfig {
+        minSdkVersion androidConfig.minSdkVersion
+
+        buildConfigField "String", "BUY_SDK_VERSION", "\"$VERSION_NAME\""
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    libraryVariants.all { variant ->
+        variant.outputs.all { output ->
+            def outputFile = output.outputFile
+            if (outputFile != null && outputFile.name.endsWith('.aar')) {
+                outputFileName = "${variant.name}-${VERSION_NAME}.aar"
+            }
+        }
+    }
 
 //    if (variant.name.equals('release')) {
 //      task sourcesJar(type: Jar) {
@@ -72,39 +71,39 @@ android {
 //    }
 //  }
 
-  lintOptions {
-    abortOnError false
-  }
+    lintOptions {
+        abortOnError false
+    }
 
-  testOptions {
-    unitTests.returnDefaultValues = true
-  }
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
 }
 
 archivesBaseName = POM_ARTIFACT_ID
 version = VERSION_NAME
 
 dependencies {
-  implementation dep.okhttp
-  implementation dep.androidSupportAnnotations
-  implementation dep.jodaTime
-  implementation dep.gson
-  implementation dep.kotlinStdLib
-  implementation dep.timber
-  implementation dep.graphqlSupport
+    implementation dep.okhttp
+    implementation dep.androidSupportAnnotations
+    implementation dep.jodaTime
+    implementation dep.gson
+    implementation dep.kotlinStdLib
+    implementation dep.timber
+    implementation dep.graphqlSupport
 
-  testImplementation dep.mockitoCore
-  testImplementation dep.mockitokotlin
-  testImplementation dep.junit
-  testImplementation dep.truth
-  testImplementation dep.mockWebServer
+    testImplementation dep.mockitoCore
+    testImplementation dep.mockitokotlin
+    testImplementation dep.junit
+    testImplementation dep.truth
+    testImplementation dep.mockWebServer
 }
 
 
 File localProperties = project.rootProject.file('local.properties')
 Properties properties = new Properties()
 if (localProperties.exists()) {
-  properties.load(localProperties.newDataInputStream())
+    properties.load(localProperties.newDataInputStream())
 }
 
 
@@ -126,7 +125,7 @@ if (localProperties.exists()) {
 //}
 
 tasks.withType(Checkstyle) {
-  exclude '**/Storefront.java'
+    exclude '**/Storefront.java'
 }
 //
 //signing {
