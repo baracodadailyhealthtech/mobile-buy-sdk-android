@@ -37,14 +37,14 @@ private const val ENTRY_COUNT = 2
 
 internal class DiskLruCacheStore : ResponseCacheStore {
 
-    private val cache: DiskLruCache
+    private val cache: CompatDiskLruCache
 
     constructor(directory: File, maxSize: Long) {
-        this.cache = DiskLruCache.create(FileSystem.SYSTEM, directory, VERSION, ENTRY_COUNT, maxSize)
+        this.cache = CompatDiskLruCache.create(FileSystem.SYSTEM, directory, VERSION, ENTRY_COUNT, maxSize)
     }
 
     constructor(fileSystem: FileSystem, directory: File, maxSize: Long) {
-        this.cache = DiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize)
+        this.cache = CompatDiskLruCache.create(fileSystem, directory, VERSION, ENTRY_COUNT, maxSize)
     }
 
     @Throws(IOException::class)

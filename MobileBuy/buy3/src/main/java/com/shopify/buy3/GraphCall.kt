@@ -21,6 +21,8 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *   THE SOFTWARE.
  */
+@file:Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
+
 package com.shopify.buy3
 
 import android.os.Handler
@@ -213,11 +215,12 @@ sealed class GraphError(message: String? = null, cause: Throwable? = null) : Exc
     /**
      * Error when HTTP response status code is not from {@code 200} series.
      */
-    class HttpError(rawResponse: Response) : GraphError(message = "HTTP(${rawResponse.code()}) ${rawResponse.message()}") {
+    class HttpError(rawResponse: Response) :
+        GraphError(message = "HTTP(${rawResponse.code}) ${rawResponse.message}") {
         /**
          * HTTP response status code.
          */
-        val statusCode = rawResponse.code()
+        val statusCode = rawResponse.code
     }
 
     /**

@@ -27,6 +27,7 @@ import android.os.Handler
 import com.shopify.buy3.internal.RealCreditCardVaultCall
 import okhttp3.Call
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.OkHttpClient
 import java.util.concurrent.TimeUnit
 
@@ -57,7 +58,7 @@ class CardClient(internal val httpCallFactory: Call.Factory = defaultOkHttpClien
      * @return [CreditCardVaultCall]
      */
     fun vault(creditCard: CreditCard, vaultServerUrl: String): CreditCardVaultCall {
-        return RealCreditCardVaultCall(creditCard, HttpUrl.parse(vaultServerUrl), httpCallFactory)
+        return RealCreditCardVaultCall(creditCard, vaultServerUrl.toHttpUrl(), httpCallFactory)
     }
 }
 

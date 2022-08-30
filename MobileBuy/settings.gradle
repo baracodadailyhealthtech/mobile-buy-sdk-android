@@ -1,2 +1,28 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+
+        maven {
+            url = kolibree_artifactory_url + "/libs-release"
+            credentials {
+                username kolibree_artifactory_username
+                password kolibree_artifactory_password
+            }
+            content {
+                includeGroupByRegex "com\\.kolibree.*"
+                includeGroup "kolibree-publisher"
+            }
+        }
+
+        plugins {
+            id 'com.android.library' version "7.2.2" apply false
+            id 'org.jetbrains.kotlin.android' version "1.6.20" apply false
+            id 'kolibree-publisher' version "1.0.12" apply false
+        }
+    }
+}
+
 include ':buy3', ':graphql-java-support'
 project(':graphql-java-support').projectDir = new File('./libs/graphql_java_gen/support')

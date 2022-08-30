@@ -21,6 +21,8 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *   THE SOFTWARE.
  */
+@file:Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
+
 package com.shopify.buy3
 
 import com.shopify.graphql.support.AbstractResponse
@@ -37,7 +39,7 @@ typealias Predicate<T> = (value: T) -> Boolean
  * @see GraphCall.enqueue
  */
 class RetryHandler<T : AbstractResponse<T>> private constructor(
-    private val maxCount: Int,
+    @Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA") private val maxCount: Int,
     private val delayBetweenRetriesMs: Long,
     private val backoffMultiplier: Float,
     private val shouldRetry: Predicate<GraphCallResult<T>>
@@ -67,7 +69,10 @@ class RetryHandler<T : AbstractResponse<T>> private constructor(
     val nextRetryDelayMs: Long
         get() {
             return Math.max(
-                (delayBetweenRetriesMs * Math.pow(backoffMultiplier.toDouble(), retryAttempt.get().toDouble())).toLong(),
+                (delayBetweenRetriesMs * Math.pow(
+                    backoffMultiplier.toDouble(),
+                    retryAttempt.get().toDouble()
+                )).toLong(),
                 delayBetweenRetriesMs
             )
         }
@@ -154,7 +159,11 @@ class RetryHandler<T : AbstractResponse<T>> private constructor(
          * @param configure function to configure optional parameters
          * @return prepared [Builder]
          */
-        fun <T : AbstractResponse<T>> build(delay: Long, timeUnit: TimeUnit, configure: Builder<T>.() -> Unit): RetryHandler<T> {
+        fun <T : AbstractResponse<T>> build(
+            delay: Long,
+            timeUnit: TimeUnit,
+            configure: Builder<T>.() -> Unit
+        ): RetryHandler<T> {
             return Builder.create(delay = delay, timeUnit = timeUnit, configure = configure).build()
         }
     }

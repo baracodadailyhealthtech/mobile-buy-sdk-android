@@ -121,10 +121,11 @@ internal class HttpCache constructor(private val cacheStore: ResponseCacheStore)
         var cacheRecordEditor: ResponseCacheRecordEditor? = null
         try {
             cacheRecordEditor = cacheStore.cacheRecordEditor(cacheKey)
-            if (cacheRecordEditor != null) {
+            val body = response.body
+            if (cacheRecordEditor != null && body != null) {
                 ResponseHeaderRecord(response).writeTo(cacheRecordEditor)
                 return response.newBuilder()
-                    .body(ResponseBodyProxy(cacheRecordEditor, response))
+                    .body(ResponseBodyProxy(cacheRecordEditor, response, body))
                     .build()
             }
         } catch (e: Exception) {
