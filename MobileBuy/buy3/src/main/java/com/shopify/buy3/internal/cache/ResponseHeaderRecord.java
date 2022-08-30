@@ -44,7 +44,7 @@ import okio.Okio;
 import okio.Source;
 
 /**
- * Class was copied and modified from {@link okhttp3.Cache.Entry}
+ * Class was copied and modified from okhttp3.Cache.Entry
  */
 final class ResponseHeaderRecord {
   /** Synthetic response header: the local time when the request was sent. */
@@ -124,7 +124,7 @@ final class ResponseHeaderRecord {
       }
       varyHeaders = varyHeadersBuilder.build();
 
-      StatusLine statusLine = StatusLine.parse(source.readUtf8LineStrict());
+      CompatStatusLine statusLine = CompatStatusLine.parse(source.readUtf8LineStrict());
       protocol = statusLine.protocol;
       code = statusLine.code;
       message = statusLine.message;
@@ -168,7 +168,7 @@ final class ResponseHeaderRecord {
 
   ResponseHeaderRecord(Response response) {
     this.url = response.request().url().toString();
-    this.varyHeaders = HttpHeaders.varyHeaders(response);
+    this.varyHeaders = CompatHttpHeaders.varyHeaders(response);
     this.requestMethod = response.request().method();
     this.protocol = response.protocol();
     this.code = response.code();

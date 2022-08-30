@@ -21,6 +21,8 @@
  *   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  *   THE SOFTWARE.
  */
+@file:Suppress("FINITE_BOUNDS_VIOLATION_IN_JAVA")
+
 package com.shopify.buy3.internal
 
 import android.os.Handler
@@ -45,6 +47,8 @@ import com.shopify.graphql.support.Query
 import okhttp3.Call
 import okhttp3.HttpUrl
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -56,7 +60,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 private const val ACCEPT_HEADER_NAME = "Accept"
 private const val ACCEPT_HEADER = "application/json"
-private val GRAPHQL_MEDIA_TYPE = MediaType.parse("application/graphql; charset=utf-8")
+private val GRAPHQL_MEDIA_TYPE = "application/graphql; charset=utf-8".toMediaType()
 
 internal class RealQueryGraphCall(
     query: Storefront.QueryRootQuery,
@@ -163,7 +167,7 @@ internal abstract class RealGraphCall<T : AbstractResponse<T>> protected constru
     protected val httpCallFactory: Call.Factory,
     protected val httpResponseParser: HttpResponseParser<T>,
     protected val dispatcher: ScheduledExecutorService,
-    @VisibleForTesting internal val httpCachePolicy: HttpCachePolicy,
+    @get:VisibleForTesting internal val httpCachePolicy: HttpCachePolicy,
     protected val httpCache: HttpCache?
 ) : GraphCall<T>, Cloneable {
     protected var executed = false
@@ -311,14 +315,14 @@ private class GraphHttpResultCallback<T : AbstractResponse<T>> constructor(
             response.parse()
         } catch (e: GraphError) {
             if (e is GraphError.ParseError) {
-                httpCache?.purge(response.request())
+                httpCache?.purge(response.request)
             }
             resultCallback(GraphCallResult.Failure(e))
             return
         }
 
         if (graphResponse.hasErrors) {
-            httpCache?.purge(response.request())
+            httpCache?.purge(response.request)
         }
 
         resultCallback(GraphCallResult.Success(graphResponse))

@@ -24,28 +24,27 @@
 package com.shopify.buy3.internal.cache
 
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Response
 import okhttp3.ResponseBody
-import okhttp3.internal.Util.discard
-import okhttp3.internal.http.HttpCodec
-import okio.Buffer
-import okio.BufferedSink
-import okio.BufferedSource
-import okio.ForwardingSink
-import okio.Okio
-import okio.Source
-import okio.Timeout
+import okhttp3.internal.discard
+import okhttp3.internal.http.ExchangeCodec.Companion.DISCARD_STREAM_TIMEOUT_MILLIS
+import okio.*
 import timber.log.Timber
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-internal class ResponseBodyProxy(cacheRecordEditor: ResponseCacheRecordEditor, sourceResponse: Response) : ResponseBody() {
+internal class ResponseBodyProxy(
+    cacheRecordEditor: ResponseCacheRecordEditor,
+    sourceResponse: Response,
+    body: ResponseBody
+) : ResponseBody() {
     private val contentType = sourceResponse.header("Content-Type")
     private val contentLength = sourceResponse.header("Content-Length")
-    private val responseBodySource = ProxySource(cacheRecordEditor, sourceResponse.body().source())
+    private val responseBodySource: ProxySource = ProxySource(cacheRecordEditor, body.source())
 
     override fun contentType(): MediaType? {
-        return if (contentType != null) MediaType.parse(contentType) else null
+        return contentType?.toMediaTypeOrNull()
     }
 
     override fun contentLength(): Long {
@@ -57,7 +56,7 @@ internal class ResponseBodyProxy(cacheRecordEditor: ResponseCacheRecordEditor, s
         }
     }
 
-    override fun source(): BufferedSource = Okio.buffer(responseBodySource)
+    override fun source(): BufferedSource = responseBodySource?.buffer()
 }
 
 private class ProxySource internal constructor(
@@ -68,7 +67,9 @@ private class ProxySource internal constructor(
     internal var closed: Boolean = false
 
     init {
-        responseBodyCacheSink = object : ResponseBodyCacheSink(Okio.buffer(cacheRecordEditor.bodySink())) {
+        responseBodyCacheSink = object : ResponseBodyCacheSink(
+            cacheRecordEditor.bodySink().buffer()
+        ) {
             override fun onException(e: Exception) {
                 abortCacheQuietly()
                 Timber.w(e, "failed to write to cache response sink")
@@ -96,7 +97,7 @@ private class ProxySource internal constructor(
             return -1
         }
 
-        responseBodyCacheSink.copyFrom(sink, sink.size() - bytesRead, bytesRead)
+        responseBodyCacheSink.copyFrom(sink, sink.size - bytesRead, bytesRead)
         return bytesRead
     }
 
@@ -109,7 +110,7 @@ private class ProxySource internal constructor(
         if (closed) return
         closed = true
 
-        if (discard(this, HttpCodec.DISCARD_STREAM_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+        if (discard(DISCARD_STREAM_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
             responseBodySource.close()
             commitCache()
         } else {
@@ -178,7 +179,7 @@ private abstract class ResponseBodyCacheSink(delegate: BufferedSink) : Forwardin
     fun copyFrom(buffer: Buffer, offset: Long, bytesCount: Long) {
         if (failed) return
         try {
-            val outSink = delegate() as BufferedSink
+            val outSink = delegate as BufferedSink
             buffer.copyTo(outSink.buffer(), offset, bytesCount)
             outSink.emitCompleteSegments()
         } catch (e: Exception) {

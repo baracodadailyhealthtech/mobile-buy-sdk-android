@@ -28,8 +28,7 @@ import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
-import okhttp3.internal.Util
-import okhttp3.internal.http.HttpDate
+import okhttp3.internal.EMPTY_RESPONSE
 import okio.Buffer
 import java.io.Closeable
 import java.io.IOException
@@ -47,7 +46,7 @@ internal val RequestBody.cacheKey: String
     }
 
 internal fun Response?.strip(): Response? {
-    return this?.body()?.let {
+    return this?.body?.let {
         newBuilder().body(null).networkResponse(null).cacheResponse(null).build()
     } ?: this
 }
@@ -55,7 +54,7 @@ internal fun Response?.strip(): Response? {
 @Throws(IOException::class)
 internal fun Response.withServedDateHeader(): Response {
     return newBuilder()
-        .addHeader(HTTP_CACHE_SERVED_DATE_HEADER, HttpDate.format(Date()))
+        .addHeader(HTTP_CACHE_SERVED_DATE_HEADER, CompatHttpDate.format(Date()))
         .build()
 }
 
@@ -84,7 +83,7 @@ internal val Request.unsatisfiableCacheRequest: Response
             .protocol(Protocol.HTTP_1_1)
             .code(504)
             .message("Unsatisfiable Request (cache-only)")
-            .body(Util.EMPTY_RESPONSE)
+            .body(EMPTY_RESPONSE)
             .sentRequestAtMillis(-1L)
             .receivedResponseAtMillis(System.currentTimeMillis())
             .build()
@@ -102,7 +101,7 @@ internal fun isStale(request: Request, response: Response): Boolean {
     }
 
     val timeout = timeoutStr.toLong()
-    val servedDate = HttpDate.parse(servedDateStr)
+    val servedDate = CompatHttpDate.parse(servedDateStr)
 
     val now = System.currentTimeMillis()
     return servedDate == null || now - servedDate.time > timeout

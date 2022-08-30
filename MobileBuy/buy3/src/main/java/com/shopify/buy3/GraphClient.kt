@@ -32,6 +32,8 @@ import com.shopify.buy3.internal.cache.HttpCache
 import com.shopify.buy3.internal.cache.ResponseCacheStore
 import okhttp3.Call
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.OkHttpClient
 import okio.ByteString
 import java.io.File
@@ -158,7 +160,7 @@ class GraphClient private constructor(
         @VisibleForTesting
         internal var dispatcher: ScheduledThreadPoolExecutor? = null
         @VisibleForTesting
-        internal var endpointUrl = HttpUrl.parse("https://$shopDomain/api/${Storefront.API_VERSION}/graphql")
+        internal var endpointUrl: HttpUrl = "https://$shopDomain/api/${Storefront.API_VERSION}/graphql".toHttpUrl()
 
         init {
             shopDomain.checkNotBlank("shopDomain can't be empty")
@@ -274,7 +276,7 @@ private fun OkHttpClient.withHttpCacheInterceptor(httpCache: HttpCache?): OkHttp
 private fun OkHttpClient.withSdkHeaderInterceptor(applicationName: String, accessToken: String, locale: String?): OkHttpClient {
     return newBuilder().addInterceptor { chain ->
         val original = chain.request()
-        val builder = original.newBuilder().method(original.method(), original.body())
+        val builder = original.newBuilder().method(original.method, original.body)
         builder.header("User-Agent", "Mobile Buy SDK Android/" + BuildConfig.BUY_SDK_VERSION + "/" + applicationName)
         builder.header("X-SDK-Version", BuildConfig.BUY_SDK_VERSION)
         builder.header("X-SDK-Variant", "android")

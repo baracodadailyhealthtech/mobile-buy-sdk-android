@@ -32,6 +32,7 @@ import com.shopify.buy3.CreditCardVaultCall
 import okhttp3.Call
 import okhttp3.HttpUrl
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.Response
@@ -43,7 +44,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 private const val ACCEPT_HEADER_NAME = "Accept"
 private const val ACCEPT_HEADER = "application/json"
-private val CONTENT_MEDIA_TYPE = MediaType.parse("application/json; charset=utf-8")
+private val CONTENT_MEDIA_TYPE = "application/json; charset=utf-8".toMediaTypeOrNull()
 
 internal class RealCreditCardVaultCall(
     internal val creditCard: CreditCard,
@@ -54,7 +55,8 @@ internal class RealCreditCardVaultCall(
     private var httpCall: Call? = null
     private var resultCallback: VaultHttpCallback? = null
 
-    @Volatile override var isCanceled: Boolean = false
+    @Volatile
+    override var isCanceled: Boolean = false
         private set
 
     override fun cancel() {
@@ -73,13 +75,17 @@ internal class RealCreditCardVaultCall(
         return RealCreditCardVaultCall(creditCard, endpointUrl, httpCallFactory)
     }
 
-    override fun enqueue(callbackHandler: Handler?, callback: CardVaultResultCallback): CreditCardVaultCall {
+    override fun enqueue(
+        callbackHandler: Handler?,
+        callback: CardVaultResultCallback
+    ): CreditCardVaultCall {
         if (!executed.compareAndSet(false, true)) {
             throw IllegalStateException("Already Executed")
         }
 
         if (isCanceled) {
-            val action = { callback(CardVaultResult.Failure(IllegalStateException("Call was canceled"))) }
+            val action =
+                { callback(CardVaultResult.Failure(IllegalStateException("Call was canceled"))) }
             callbackHandler?.post(action) ?: action()
             return this
         }
@@ -87,7 +93,16 @@ internal class RealCreditCardVaultCall(
         val payload = try {
             creditCard.toJson()
         } catch (e: JSONException) {
-            val action = { callback(CardVaultResult.Failure(RuntimeException("Failed to serialize credit card", e))) }
+            val action = {
+                callback(
+                    CardVaultResult.Failure(
+                        RuntimeException(
+                            "Failed to serialize credit card",
+                            e
+                        )
+                    )
+                )
+            }
             callbackHandler?.post(action) ?: action()
             return this
         }
@@ -96,8 +111,9 @@ internal class RealCreditCardVaultCall(
             resultCallback = VaultHttpCallback {
                 callbackHandler?.post { callback(it) } ?: callback(it)
             }
-            httpCall = httpCallFactory.newVaultHttpCall(endpointUrl = endpointUrl, payload = payload)
-                .apply { enqueue(resultCallback) }
+            httpCall =
+                httpCallFactory.newVaultHttpCall(endpointUrl = endpointUrl, payload = payload)
+                    .apply { enqueue(resultCallback!!) }
         }
 
         return this
@@ -160,12 +176,12 @@ private fun CreditCard.toJson(): String {
 private fun Response.parseVaultToken(): String {
     return if (isSuccessful) {
         try {
-            val responseJsonObject = JSONObject(body().string())
+            val responseJsonObject = JSONObject(body?.string() ?: "")
             responseJsonObject.getString("id")
         } catch (e: Exception) {
             throw IOException("Failed to parse vault response", e)
         }
     } else {
-        throw IOException("Failed to vault credit card: HTTP(${code()} {${message()}}")
+        throw IOException("Failed to vault credit card: HTTP($code {$message}")
     }
 }
